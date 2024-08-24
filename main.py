@@ -87,6 +87,8 @@ elif sidebar.button('Document Comparison'):
     st.session_state.operation = 'compare_documents'
 elif sidebar.button('Legal Document Categorization'):
     st.session_state.operation = 'categorize_document'
+elif sidebar.button('Verify Contract'):
+    st.session_state.operation = 'verify_contract'
 
 if st.session_state.operation == 'contract_drafting':
     if 'contract_type' not in st.session_state:
@@ -289,3 +291,27 @@ elif st.session_state.operation == 'categorize_document':
     # Display the document type
     if st.session_state['document_type']:
         st.write(st.session_state['document_type'])
+elif st.session_state.operation == 'verify_contract':
+    contract_address = st.text_input("Enter the contract address to verify")
+
+    if st.button("Verify"):
+        try:
+            # Retrieve the bytecode of the contract at the given address
+            deployed_code = w3.eth.get_code(contract_address).hex()
+
+            if deployed_code != "0x":
+                st.write("Contract code found at the address.")
+                
+                # Here you can compare the deployed code with your contract's bytecode
+                expected_bytecode = contract_interface['bin']
+
+                # Trim the deployed code to match the length of expected bytecode (ignore constructor args)
+                if deployed_code[:len(expected_bytecode)] == expected_bytecode:
+                    st.success("The contract code matches the expected smart contract bytecode.")
+                else:
+                    st.warning("The contract code does not match the expected bytecode.")
+            else:
+                st.error("No contract code found at this address. The address might not be a smart contract.")
+        except Exception as e:
+            st.error(f"An error occurred: {str(e)}")
+
