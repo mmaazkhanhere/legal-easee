@@ -7,7 +7,8 @@ from features.draft_generation import draft_contract
 from features.contract_clause_suggestion import suggest_clauses
 from features.contract_compliance_monitoring import monitor_compliance
 from features.contract_review import review_contract
-from features.document_comparison import compare_documents  # Import the compare_documents function
+from features.document_comparison import compare_documents
+from features.legal_document_categorization import categorize_document  # Import the categorize_document function
 from helper_functions.pdf_conversion import save_to_pdf
 
 # Load environment variables
@@ -210,3 +211,32 @@ elif st.session_state.operation == 'compare_documents':
     # Display the comparison summary
     if st.session_state['comparison_summary']:
         st.write(st.session_state['comparison_summary'])
+
+# Legal Document Categorization
+elif st.session_state.operation == 'categorize_document':
+    if 'document_text' not in st.session_state:
+        st.session_state['document_text'] = ''
+
+    if 'document_type' not in st.session_state:
+        st.session_state['document_type'] = ''
+
+    # Form for legal document categorization input
+    with st.form(key='document_categorization_form'):
+        st.session_state['document_text'] = st.text_area('Enter the document text to categorize', value=st.session_state['document_text'])
+
+        btn = st.form_submit_button('Categorize Document')
+        if btn:
+            # Initialize WatsonxLLM instance
+            watsonx_llm = WatsonxLLM(
+                model_id="ibm/granite-13b-chat-v2",
+                url=ibm_url,
+                project_id=ibm_project_id,
+                params=parameters,
+            )
+
+            response = categorize_document(st.session_state['document_text'], watsonx_llm)
+            st.session_state['document_type'] = response  # Store response in session state
+
+    # Display the document type
+    if st.session_state['document_type']:
+        st.write(st.session_state['document_type'])
