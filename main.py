@@ -1,8 +1,12 @@
+from langchain_ibm import WatsonxLLM  # Import WatsonxLLM
 from dotenv import load_dotenv
 import os
 import streamlit as st
 
 from features.draft_generation import draft_contract
+from features.contract_clause_suggestion import suggest_clauses
+from features.contract_compliance_monitoring import monitor_compliance
+from features.contract_review import review_contract  # Import the review_contract function
 from helper_functions.pdf_conversion import save_to_pdf
 
 # Load environment variables
@@ -34,7 +38,18 @@ st.sidebar.header('Select your operation')
 
 if sidebar.button('Contract Drafting'):
     st.session_state.operation = 'contract_drafting'
+elif sidebar.button('Contract Clause Suggestion'):
+    st.session_state.operation = 'suggest_clauses'
+elif sidebar.button('Contract Compliance Monitoring'):
+    st.session_state.operation = 'monitor_compliance'
+elif sidebar.button('Contract Review'):
+    st.session_state.operation = 'review_contract'
+elif sidebar.button('Document Comparison'):
+    st.session_state.operation = 'compare_documents'
+elif sidebar.button('Legal Document Categorization'):
+    st.session_state.operation = 'categorize_document'
 
+# Contract Drafting
 if st.session_state.operation == 'contract_drafting':
     if 'contract_type' not in st.session_state:
         st.session_state['contract_type'] = 'NDA'
@@ -74,3 +89,90 @@ if st.session_state.operation == 'contract_drafting':
 
         pdf_file = save_to_pdf(st.session_state['generated_contract'])
         st.download_button(label="Download Contract", data=pdf_file, file_name="contract.pdf", mime="application/pdf")
+
+# Contract Clause Suggestion
+elif st.session_state.operation == 'suggest_clauses':
+    if 'contract_text' not in st.session_state:
+        st.session_state['contract_text'] = ''
+
+    if 'suggested_clauses' not in st.session_state:
+        st.session_state['suggested_clauses'] = ''
+
+    # Form for contract clause suggestion input
+    with st.form(key='clause_suggestion_form'):
+        st.session_state['contract_text'] = st.text_area('Enter the contract text for clause suggestions', value=st.session_state['contract_text'])
+
+        btn = st.form_submit_button('Suggest Clauses')
+        if btn:
+            # Initialize WatsonxLLM instance
+            watsonx_llm = WatsonxLLM(
+                model_id="ibm/granite-13b-chat-v2",
+                url=ibm_url,
+                project_id=ibm_project_id,
+                params=parameters,
+            )
+
+            response = suggest_clauses(st.session_state['contract_text'], watsonx_llm)
+            st.session_state['suggested_clauses'] = response  # Store response in session state
+
+    # Display the suggested clauses
+    if st.session_state['suggested_clauses']:
+        st.write(st.session_state['suggested_clauses'])
+
+# Contract Compliance Monitoring
+elif st.session_state.operation == 'monitor_compliance':
+    if 'contract_text' not in st.session_state:
+        st.session_state['contract_text'] = ''
+
+    if 'compliance_summary' not in st.session_state:
+        st.session_state['compliance_summary'] = ''
+
+    # Form for contract compliance monitoring input
+    with st.form(key='compliance_monitoring_form'):
+        st.session_state['contract_text'] = st.text_area('Enter the contract text for compliance monitoring', value=st.session_state['contract_text'])
+
+        btn = st.form_submit_button('Check Compliance')
+        if btn:
+            # Initialize WatsonxLLM instance
+            watsonx_llm = WatsonxLLM(
+                model_id="ibm/granite-13b-chat-v2",
+                url=ibm_url,
+                project_id=ibm_project_id,
+                params=parameters,
+            )
+
+            response = monitor_compliance(st.session_state['contract_text'], watsonx_llm)
+            st.session_state['compliance_summary'] = response  # Store response in session state
+
+    # Display the compliance summary
+    if st.session_state['compliance_summary']:
+        st.write(st.session_state['compliance_summary'])
+
+# Contract Review
+elif st.session_state.operation == 'review_contract':
+    if 'contract_text' not in st.session_state:
+        st.session_state['contract_text'] = ''
+
+    if 'review_summary' not in st.session_state:
+        st.session_state['review_summary'] = ''
+
+    # Form for contract review input
+    with st.form(key='review_contract_form'):
+        st.session_state['contract_text'] = st.text_area('Enter the contract text for review', value=st.session_state['contract_text'])
+
+        btn = st.form_submit_button('Review Contract')
+        if btn:
+            # Initialize WatsonxLLM instance
+            watsonx_llm = WatsonxLLM(
+                model_id="ibm/granite-13b-chat-v2",
+                url=ibm_url,
+                project_id=ibm_project_id,
+                params=parameters,
+            )
+
+            response = review_contract(st.session_state['contract_text'], watsonx_llm)
+            st.session_state['review_summary'] = response  # Store response in session state
+
+    # Display the review summary
+    if st.session_state['review_summary']:
+        st.write(st.session_state['review_summary'])
