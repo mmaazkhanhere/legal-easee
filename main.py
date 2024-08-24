@@ -302,10 +302,17 @@ elif st.session_state.operation == 'verify_contract':
             if deployed_code != "0x":
                 st.write("Contract code found at the address.")
                 
-                # Here you can compare the deployed code with your contract's bytecode
+                # Print the full deployed bytecode for debugging
+                st.write(f"Full Deployed code: {deployed_code}")
+
+                # Compare with expected bytecode
                 expected_bytecode = contract_interface['bin']
 
-                # Trim the deployed code to match the length of expected bytecode (ignore constructor args)
+                # Print the first and last parts of both bytecodes for comparison
+                st.write(f"Expected code (first 20 chars): {expected_bytecode[:20]}")
+                st.write(f"Expected code (last 20 chars): {expected_bytecode[-20:]}")
+
+                # Compare the main part of the bytecode
                 if deployed_code[:len(expected_bytecode)] == expected_bytecode:
                     st.success("The contract code matches the expected smart contract bytecode.")
                 else:
@@ -314,4 +321,6 @@ elif st.session_state.operation == 'verify_contract':
                 st.error("No contract code found at this address. The address might not be a smart contract.")
         except Exception as e:
             st.error(f"An error occurred: {str(e)}")
+
+
 
