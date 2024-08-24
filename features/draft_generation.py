@@ -10,6 +10,7 @@ def draft_contract(url, project_id, parameters, contract_type, party_one, party_
     )
 
     template = f"""
+    
     You are a legal expert tasked with drafting a {contract_type} contract that adheres to the legal standards and practices of {country}. Below are the details to be included in the contract:
 
     - Party One: {party_one}
