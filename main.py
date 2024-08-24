@@ -82,7 +82,7 @@ if st.session_state.operation == 'contract_drafting':
 
         btn = st.form_submit_button('Draft')
         if btn:
-            response = draft_contract(ibm_url, ibm_project_id, parameters, 'contract_type' , 'party_one' , 'party_two', 'contract_terms')
+            response = draft_contract(ibm_url, ibm_project_id, parameters, st.session_state['contract_type']  , st.session_state['party_one'] ,  st.session_state['party_two'], st.session_state['contract_terms'])
             st.session_state['generated_contract'] = response  # Store response in session state
 
     # Display the generated contract and download button outside the form

@@ -8,20 +8,16 @@ def draft_contract(url, project_id, parameters, contract_type, party_one, party_
         url=url,
         project_id=project_id,
         params=parameters,
-        contract_type = contract_type, 
-        party_one = party_one, 
-        party_two = party_two, 
-        contract_terms = contract_terms
     )
 
     template = f"""
-    You are a legal expert generating a {st.session_state['contract_type']} contract. Below are the details:
+    You are a legal expert generating a {contract_type} contract. Below are the details:
 
-    - Party One: {st.session_state['party_one']}
-    - Party Two: {st.session_state['party_two']}
-    - Key Terms: {st.session_state['contract_terms']}
+    - Party One: {party_one}
+    - Party Two: {party_two}
+    - Key Terms: {contract_terms}
 
-    Please draft a comprehensive {st.session_state['contract_type']} contract based on the provided details.
+    Please draft a comprehensive {contract_type} contract based on the provided details.
     """
     response = watsonx_llm.invoke(template)
 
