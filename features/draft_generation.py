@@ -1,13 +1,17 @@
 import streamlit as st
 from langchain_ibm import WatsonxLLM
 
-def draft_contract(url, project_id, parameters):
+def draft_contract(url, project_id, parameters, contract_type, party_one, party_two, contract_terms):
 
     watsonx_llm = WatsonxLLM(
         model_id="ibm/granite-13b-chat-v2",
         url=url,
         project_id=project_id,
         params=parameters,
+        contract_type = contract_type, 
+        party_one = party_one, 
+        party_two = party_two, 
+        contract_terms = contract_terms
     )
 
     template = f"""
