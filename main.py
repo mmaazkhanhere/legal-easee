@@ -56,6 +56,9 @@ if st.session_state.operation == 'contract_drafting':
     if 'contract_type' not in st.session_state:
         st.session_state['contract_type'] = 'NDA'
 
+    if 'country' not in st.session_state:
+        st.session_state['country'] = 'USA'
+
     if 'party_one' not in st.session_state:
         st.session_state['party_one'] = ''
 
@@ -72,8 +75,14 @@ if st.session_state.operation == 'contract_drafting':
     with st.form(key='contract_form'):
         st.session_state['contract_type'] = st.selectbox(
             'Select Contract Type', 
-            ['NDA', 'Employment Agreement', 'Service Agreement', 'Sales Agreement'], 
-            index=['NDA', 'Employment Agreement', 'Service Agreement', 'Sales Agreement'].index(st.session_state['contract_type'])
+            ['NDA', 'Employment Agreement', 'Service Agreement', 'Sales Agreement', 'Lease Agreement', 'Partnership Agreement', 'Loan Agreement', 'Franchise Agreement', 'Settlement Agreement', 'Indemnity Agreement', 'Licensing Agreement'], 
+            index=['NDA', 'Employment Agreement', 'Service Agreement', 'Sales Agreement', 'Lease Agreement', 'Partnership Agreement', 'Loan Agreement', 'Franchise Agreement', 'Settlement Agreement', 'Indemnity Agreement', 'Licensing Agreement'].index(st.session_state['contract_type'])
+        )
+
+        st.session_state['country'] = st.selectbox(
+            'Select Country', 
+            ['Australia', 'Canada', 'United Arab Emirates','United Kingdom', 'United States'], 
+            index=['Australia', 'Canada', 'United Arab Emirates','United Kingdom', 'United States'].index(st.session_state['country'])
         )
 
         st.session_state['party_one'] = st.text_input('Enter the name of Party One', value=st.session_state['party_one'])
