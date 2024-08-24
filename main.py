@@ -1,16 +1,18 @@
-from langchain_ibm import WatsonxLLM  # Import WatsonxLLM
 from dotenv import load_dotenv
+import solcx
 import os
 import streamlit as st
+from web3 import Web3
+from solcx import compile_source
+from langchain_ibm import WatsonxLLM 
 
 from features.draft_generation import draft_contract
+from helper_functions.pdf_conversion import save_to_pdf
 from features.contract_clause_suggestion import suggest_clauses
 from features.contract_compliance_monitoring import monitor_compliance
 from features.contract_review import review_contract
 from features.document_comparison import compare_documents
-from features.legal_document_categorization import categorize_document  # Import the categorize_document function
-from helper_functions.pdf_conversion import save_to_pdf
-
+from features.legal_document_categorization import categorize_document
 # Load environment variables
 load_dotenv()
 
@@ -18,6 +20,41 @@ load_dotenv()
 ibm_key = os.environ["WATSONX_APIKEY"]
 ibm_project_id = os.environ.get('PROJECT_ID')
 ibm_url = os.environ.get('WATSONX_URL')
+
+try:
+    solcx.set_solc_version('0.8.0')
+except solcx.exceptions.SolcNotInstalled:
+    st.write("Solc is not installed. Installing Solc 0.8.0...")
+    solcx.install_solc('0.8.0')
+    solcx.set_solc_version('0.8.0')
+
+# Ethereum blockchain configuration
+eth_provider = os.environ.get("WEB3_PROVIDER")
+private_key = os.environ.get("PRIVATE_KEY")
+account_address = os.environ.get("DEFAULT_ACCOUNT")
+
+w3 = Web3(Web3.HTTPProvider(eth_provider))
+
+# Solidity source code
+contract_source_code = '''
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract ContractStorage {
+    string public contractContent;
+
+    constructor(string memory _content) {
+        contractContent = _content;
+    }
+
+    function getContractContent() public view returns (string memory) {
+        return contractContent;
+    }
+}
+'''
+
+compiled_sol = compile_source(contract_source_code)
+contract_interface = compiled_sol['<stdin>:ContractStorage']
 
 # Set parameters for the AI model
 parameters = {
@@ -51,7 +88,6 @@ elif sidebar.button('Document Comparison'):
 elif sidebar.button('Legal Document Categorization'):
     st.session_state.operation = 'categorize_document'
 
-# Contract Drafting
 if st.session_state.operation == 'contract_drafting':
     if 'contract_type' not in st.session_state:
         st.session_state['contract_type'] = 'NDA'
@@ -82,8 +118,23 @@ if st.session_state.operation == 'contract_drafting':
 
         btn = st.form_submit_button('Draft')
         if btn:
-            response = draft_contract(ibm_url, ibm_project_id, parameters, st.session_state['contract_type']  , st.session_state['party_one'] ,  st.session_state['party_two'], st.session_state['contract_terms'])
+            response = draft_contract(ibm_url, ibm_project_id, parameters)
             st.session_state['generated_contract'] = response  # Store response in session state
+
+            # Deploy the contract with the generated content
+            Contract = w3.eth.contract(abi=contract_interface['abi'], bytecode=contract_interface['bin'])
+            nonce = w3.eth.get_transaction_count(account_address)
+            transaction = Contract.constructor(response).build_transaction({
+                'from':account_address,  # Mainnet; change to 3 for Ropsten or 4 for Rinkeby
+                'gas': 229944,
+                'gasPrice': w3.to_wei('50', 'gwei'),
+                'nonce': nonce,
+            })
+
+            signed_txn = w3.eth.account.sign_transaction(transaction, private_key='6836910e078248b4c4b30c4602bb99740394eed480a5df27afd558625faa5a2d')
+            tx_hash = w3.eth.send_raw_transaction(signed_txn.raw_transaction)
+            tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
+            st.success(f"Contract successfully deployed to Ethereum with transaction hash: {tx_hash.hex()} and contract address: {tx_receipt.contractAddress}")
 
     # Display the generated contract and download button outside the form
     if st.session_state['generated_contract']:
@@ -91,8 +142,6 @@ if st.session_state.operation == 'contract_drafting':
 
         pdf_file = save_to_pdf(st.session_state['generated_contract'])
         st.download_button(label="Download Contract", data=pdf_file, file_name="contract.pdf", mime="application/pdf")
-
-# Contract Clause Suggestion
 elif st.session_state.operation == 'suggest_clauses':
     if 'contract_text' not in st.session_state:
         st.session_state['contract_text'] = ''
