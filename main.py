@@ -5,12 +5,15 @@ from langchain_ibm import WatsonxLLM
 
 from features.draft_generation import draft_contract
 
+from features.draft_generation import draft_contract
+
 # from helpers.pdf_conversion import save_to_pdf
 
 # Load environment variables
 load_dotenv()
 
 if 'operation' not in st.session_state:
+        st.session_state.operation = ''
         st.session_state.operation = ''
 
 # Retrieve IBM API credentials from environment variables
@@ -45,6 +48,11 @@ st.sidebar.header('Select your operation')
 contract_drafting = sidebar.button('Contract Drafting')
 
 if contract_drafting:
+    generated_contract = draft_contract(ibm_url, ibm_project_id, parameters)
+    st.write(generated_contract)
+
+    # pdf_file =  save_to_pdf(generated_contract)
+    # st.download_button(label="Download Contract", data=pdf_file, file_name="contract.pdf", mime="application/pdf")
     generated_contract = draft_contract(ibm_url, ibm_project_id, parameters)
     st.write(generated_contract)
 
