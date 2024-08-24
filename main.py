@@ -6,7 +6,8 @@ import streamlit as st
 from features.draft_generation import draft_contract
 from features.contract_clause_suggestion import suggest_clauses
 from features.contract_compliance_monitoring import monitor_compliance
-from features.contract_review import review_contract  # Import the review_contract function
+from features.contract_review import review_contract
+from features.document_comparison import compare_documents  # Import the compare_documents function
 from helper_functions.pdf_conversion import save_to_pdf
 
 # Load environment variables
@@ -176,3 +177,36 @@ elif st.session_state.operation == 'review_contract':
     # Display the review summary
     if st.session_state['review_summary']:
         st.write(st.session_state['review_summary'])
+
+# Document Comparison
+elif st.session_state.operation == 'compare_documents':
+    if 'original_contract' not in st.session_state:
+        st.session_state['original_contract'] = ''
+
+    if 'new_contract' not in st.session_state:
+        st.session_state['new_contract'] = ''
+
+    if 'comparison_summary' not in st.session_state:
+        st.session_state['comparison_summary'] = ''
+
+    # Form for document comparison input
+    with st.form(key='document_comparison_form'):
+        st.session_state['original_contract'] = st.text_area('Enter the original contract text', value=st.session_state['original_contract'])
+        st.session_state['new_contract'] = st.text_area('Enter the updated contract text', value=st.session_state['new_contract'])
+
+        btn = st.form_submit_button('Compare Documents')
+        if btn:
+            # Initialize WatsonxLLM instance
+            watsonx_llm = WatsonxLLM(
+                model_id="ibm/granite-13b-chat-v2",
+                url=ibm_url,
+                project_id=ibm_project_id,
+                params=parameters,
+            )
+
+            response = compare_documents(st.session_state['original_contract'], st.session_state['new_contract'], watsonx_llm)
+            st.session_state['comparison_summary'] = response  # Store response in session state
+
+    # Display the comparison summary
+    if st.session_state['comparison_summary']:
+        st.write(st.session_state['comparison_summary'])
