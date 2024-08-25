@@ -132,8 +132,8 @@ if st.session_state.operation == 'contract_drafting':
 
         st.session_state['country'] = st.selectbox(
             'Select Country', 
-            ['Australia', 'Canada', 'United Arab Emirates','United Kingdom', 'USA'], 
-            index=['Australia', 'Canada', 'United Arab Emirates','United Kingdom', 'USA'].index(st.session_state['country'])
+            ['Australia', 'Canada', 'United Arab Emirates','United Kingdom', 'United States'], 
+            index=['Australia', 'Canada', 'United Arab Emirates','United Kingdom', 'United States'].index(st.session_state['country'])
         )
 
         st.session_state['party_one'] = st.text_input('Enter the name of Party One', value=st.session_state['party_one'])
