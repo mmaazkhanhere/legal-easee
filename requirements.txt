@@ -10,4 +10,5 @@ markdown2
 reportlab
 PyPDF2
 numpy
-pandas
+sklearn-pandas==1.8.0
+ibm_watsonx_ai
