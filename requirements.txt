@@ -9,6 +9,6 @@ beautifulsoup4
 markdown2
 reportlab
 PyPDF2
-numpy==1.25.
-pandas==1.5.3
+numpy==1.45
+pandas==1.6.3
 ibm_watsonx_ai
