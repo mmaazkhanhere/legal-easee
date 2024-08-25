@@ -89,6 +89,8 @@ if 'operation' not in st.session_state:
 
 with st.sidebar:
     st.header('Select Operations')
+    if st.button('Upload to Blockchain'):
+        st.session_state.operation = 'smart_contract'
     if st.button('Contract Drafting'):
         st.session_state.operation = 'contract_drafting'
     if st.button('Contract Clause Suggestion'):
@@ -151,34 +153,11 @@ if st.session_state.operation == 'contract_drafting':
 
             st.session_state['generated_contract'] = response  # Store response in session state
 
-            # Deploy the contract with the generated content
-            
-
-            Contract = w3.eth.contract(abi=contract_interface['abi'], bytecode=contract_interface['bin'])
-            nonce = w3.eth.get_transaction_count(account_address)
-            gas_estimate = Contract.constructor(response).estimate_gas({
-            'from': account_address})
-            print(f"Estimated Gas: {gas_estimate}")
-            transaction = Contract.constructor(response).build_transaction({
-                'from':account_address,  # Mainnet; change to 3 for Ropsten or 4 for Rinkeby
-                'gas': gas_estimate + 100000,
-                'gasPrice': w3.to_wei('50', 'gwei'),
-                'nonce': nonce,
-            })
-
-            signed_txn = w3.eth.account.sign_transaction(transaction, private_key='6836910e078248b4c4b30c4602bb99740394eed480a5df27afd558625faa5a2d')
-            tx_hash = w3.eth.send_raw_transaction(signed_txn.raw_transaction)
-            tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
-            st.success(f"Contract successfully deployed to Ethereum with transaction hash: {tx_hash.hex()} and contract address: {tx_receipt.contractAddress}")
-            # verification_result = verify_contract(tx_receipt.contractAddress, st.session_state['contract_terms'])
-            # st.write(verification_result)
-
     # Display the generated contract and download button outside the form
     if st.session_state['generated_contract']:
         st.write(st.session_state['generated_contract'])
-
         pdf_file = save_to_pdf(st.session_state['generated_contract'])
-        st.download_button(label="Download Contract", data=pdf_file, file_name=f"{tx_receipt.contractAddress}.pdf", mime="application/pdf")
+        st.download_button(label="Download Contract", data=pdf_file, file_name="draft.pdf", mime="application/pdf")
 
 
 # Suggest Clause Feature
@@ -264,6 +243,35 @@ elif st.session_state.operation == 'review_contract':
         response = review_contract(ibm_url, ibm_project_id, int(max_tokens), st.session_state['contract_text'])
         st.session_state['review_summary'] = response
         st.write(st.session_state['review_summary'])
+
+
+# Smart Contract
+elif st.session_state.operation == 'smart_contract':
+    contract_file = st.file_uploader('Upload a contract file', type=['pdf'])
+    bt = st.button('Upload')
+
+
+    if bt:
+        contract_textd = extract_text_from_pdf(contract_file)
+        Contract = w3.eth.contract(abi=contract_interface['abi'], bytecode=contract_interface['bin'])
+        nonce = w3.eth.get_transaction_count(account_address)
+        gas_estimate = Contract.constructor(contract_textd).estimate_gas({
+            'from': account_address})
+        print(f"Estimated Gas: {gas_estimate}")
+        transaction = Contract.constructor(contract_textd).build_transaction({
+        'from':account_address,  # Mainnet; change to 3 for Ropsten or 4 for Rinkeby
+                'gas': gas_estimate + 100000,
+                'gasPrice': w3.to_wei('50', 'gwei'),
+                'nonce': nonce,
+        })
+
+        signed_txn = w3.eth.account.sign_transaction(transaction, private_key=os.getenv('PRIVATE_KEY'))
+        tx_hash = w3.eth.send_raw_transaction(signed_txn.raw_transaction)
+        tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
+        st.success(f"Contract successfully deployed to Ethereum with transaction hash: {tx_hash.hex()} and contract address: {tx_receipt.contractAddress}.\n Keep your contract address safe for future use. ")
+            # verification_result = verify_contract(tx_receipt.contractAddress, st.session_state['contract_terms'])
+            # st.write(verification_result)
+
 
 
 # Document Comparison
