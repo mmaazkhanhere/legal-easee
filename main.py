@@ -119,8 +119,8 @@ if st.session_state.operation == 'contract_drafting':
 
         st.session_state['country'] = st.selectbox(
             'Select Country', 
-            ['Australia', 'Canada', 'United Arab Emirates','United Kingdom', 'United States'], 
-            index=['Australia', 'Canada', 'United Arab Emirates','United Kingdom', 'United States'].index(st.session_state['country'])
+            ['Australia', 'Canada', 'United Arab Emirates','United Kingdom', 'USA'], 
+            index=['Australia', 'Canada', 'United Arab Emirates','United Kingdom', 'USA'].index(st.session_state['country'])
         )
 
         st.session_state['party_one'] = st.text_input('Enter the name of Party One', value=st.session_state['party_one'])
@@ -129,7 +129,7 @@ if st.session_state.operation == 'contract_drafting':
 
         btn = st.form_submit_button('Draft')
         if btn:
-            response = draft_contract(ibm_url, ibm_project_id, parameters)
+            response = draft_contract(ibm_url, ibm_project_id, parameters, st.session_state['contract_type'], st.session_state['country'], st.session_state['party_one'], st.session_state['party_two'], st.session_state['contract_terms'])
             st.session_state['generated_contract'] = response  # Store response in session state
 
             # Deploy the contract with the generated content
@@ -137,7 +137,7 @@ if st.session_state.operation == 'contract_drafting':
             nonce = w3.eth.get_transaction_count(account_address)
             transaction = Contract.constructor(response).build_transaction({
                 'from':account_address,  # Mainnet; change to 3 for Ropsten or 4 for Rinkeby
-                'gas': 229944,
+                'gas': 179944,
                 'gasPrice': w3.to_wei('50', 'gwei'),
                 'nonce': nonce,
             })
@@ -152,7 +152,7 @@ if st.session_state.operation == 'contract_drafting':
         st.write(st.session_state['generated_contract'])
 
         pdf_file = save_to_pdf(st.session_state['generated_contract'])
-        st.download_button(label="Download Contract", data=pdf_file, file_name="contract.pdf", mime="application/pdf")
+        st.download_button(label="Download Contract", data=pdf_file, file_name=f"{tx_receipt.contractAddress}.pdf", mime="application/pdf")
 elif st.session_state.operation == 'suggest_clauses':
     if 'contract_text' not in st.session_state:
         st.session_state['contract_text'] = ''
