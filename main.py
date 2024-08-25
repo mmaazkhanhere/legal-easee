@@ -7,7 +7,9 @@ from solcx import compile_source
 from langchain_ibm import WatsonxLLM 
 
 from helper_functions.pdf_text_extractor import extract_text_from_pdf
-
+from helper_functions.normalization import normalize_text
+from helper_functions.pdf_text_extractor import extract_text_from_pdf
+import difflib
 from features.draft_generation import draft_contract
 from helper_functions.pdf_conversion import save_to_pdf
 from features.contract_clause_suggestion import suggest_clauses
@@ -328,35 +330,49 @@ elif st.session_state.operation == 'categorize_document':
 
 
 elif st.session_state.operation == 'verify_contract':
+    uploaded_contract = st.file_uploader('Upload the contract file', type=['pdf'])
     contract_address = st.text_input("Enter the contract address to verify")
 
+    def is_valid_eth_address(address):
+        return Web3.is_address(address)
     if st.button("Verify"):
-        try:
-            # Retrieve the bytecode of the contract at the given address
-            deployed_code = w3.eth.get_code(contract_address).hex()
-
-            if deployed_code != "0x":
-                st.write("Contract code found at the address.")
-                
-                # Print the full deployed bytecode for debugging
-                st.write(f"Full Deployed code: {deployed_code}")
-
-                # Compare with expected bytecode
-                expected_bytecode = contract_interface['bin']
-
-                # Print the first and last parts of both bytecodes for comparison
-                st.write(f"Expected code (first 20 chars): {expected_bytecode[:20]}")
-                st.write(f"Expected code (last 20 chars): {expected_bytecode[-20:]}")
-
-                # Compare the main part of the bytecode
-                if deployed_code[:len(expected_bytecode)] == expected_bytecode:
-                    st.success("The contract code matches the expected smart contract bytecode.")
-                else:
-                    st.warning("The contract code does not match the expected bytecode.")
+        if uploaded_contract and contract_address:
+            # Validate the contract address
+            if not is_valid_eth_address(contract_address):
+                st.error("The entered contract address is not valid. Please enter a valid Ethereum address.")
             else:
-                st.error("No contract code found at this address. The address might not be a smart contract.")
-        except Exception as e:
-            st.error(f"An error occurred: {str(e)}")
+                checksum_address = Web3.to_checksum_address(contract_address)
 
+                # Extract text from the uploaded PDF
+                uploaded_contract_content = extract_text_from_pdf(uploaded_contract)
+
+                # Normalize the uploaded contract content
+                normalized_uploaded_content = normalize_text(uploaded_contract_content)
+
+                try:
+                    # Load the deployed contract
+                    Contract = w3.eth.contract(address=checksum_address, abi=contract_interface['abi'])
+
+                    # Fetch the contract content stored on the blockchain
+                    stored_contract_content = Contract.functions.getContractContent().call()
+
+                    # Normalize the stored contract content
+                    normalized_stored_content = normalize_text(stored_contract_content)
+
+                    # Compare the normalized texts
+                    if normalized_uploaded_content == normalized_stored_content:
+                        st.success("The uploaded contract content matches the contract stored on the blockchain.")
+                    else:
+                        st.warning("The uploaded contract content does not match the contract stored on the blockchain.")
+
+                        # Optionally, you can display the differences using difflib
+                        diff = difflib.ndiff(normalized_uploaded_content.splitlines(), normalized_stored_content.splitlines())
+                        st.text('\n'.join(diff))
+                except Exception as e:
+                    st.error(f"An error occurred while verifying the contract: {str(e)}")
+        else:
+            st.error("Please upload a contract file and enter a valid contract address.")
+
+    
 
 
