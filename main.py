@@ -336,7 +336,7 @@ elif st.session_state.operation == 'categorize_document':
     max_tokens = st.slider('Max Tokens', 100, 1000 )
 
     contract_file = st.file_uploader('Upload a contract file', type=['pdf'])
-    btn = st.button('Check Compliance')
+    btn = st.button('Check Category')
 
 
     # Form for legal document categorization input
