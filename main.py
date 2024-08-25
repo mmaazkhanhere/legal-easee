@@ -133,11 +133,16 @@ if st.session_state.operation == 'contract_drafting':
             st.session_state['generated_contract'] = response  # Store response in session state
 
             # Deploy the contract with the generated content
+            
+
             Contract = w3.eth.contract(abi=contract_interface['abi'], bytecode=contract_interface['bin'])
             nonce = w3.eth.get_transaction_count(account_address)
+            gas_estimate = Contract.constructor(response).estimate_gas({
+            'from': account_address})
+            print(f"Estimated Gas: {gas_estimate}")
             transaction = Contract.constructor(response).build_transaction({
                 'from':account_address,  # Mainnet; change to 3 for Ropsten or 4 for Rinkeby
-                'gas': 179944,
+                'gas': gas_estimate + 100000,
                 'gasPrice': w3.to_wei('50', 'gwei'),
                 'nonce': nonce,
             })
