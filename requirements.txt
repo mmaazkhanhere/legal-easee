@@ -6,7 +6,6 @@ markdown
 langchain-ibm
 python_dotenv
 beautifulsoup4
-re
 markdown2
 reportlab
 PyPDF2
