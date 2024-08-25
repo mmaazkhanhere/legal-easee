@@ -20,13 +20,6 @@ def draft_contract(url, project_id, contract_type, party_one, party_two, contrac
         str: A fully drafted contract that includes all relevant clauses, structured in a clear and legally sound format, ready for review and execution by both parties.
     """
 
-    watsonx_llm = WatsonxLLM(
-        model_id="ibm/granite-13b-chat-v2",
-        url=url,
-        project_id=project_id,
-        params=parameters,
-    )
-    
     parameters = {
         "decoding_method": "sample",
         "max_new_tokens": 800,
@@ -34,6 +27,13 @@ def draft_contract(url, project_id, contract_type, party_one, party_two, contrac
         "top_k": 50,
         "top_p": 0.9,
     }
+    
+    watsonx_llm = WatsonxLLM(
+        model_id="ibm/granite-13b-chat-v2",
+        url=url,
+        project_id=project_id,
+        params=parameters,
+    )
 
 
     template = f"""

@@ -106,6 +106,7 @@ with st.sidebar:
     if st.button('Verify Contract'):
         st.session_state.operation = 'verify_contract'
 
+
 # Contract Drafting Feature
 
 if st.session_state.operation == 'contract_drafting':
@@ -128,7 +129,8 @@ if st.session_state.operation == 'contract_drafting':
         st.session_state['generated_contract'] = ''
 
     st.header('Contract Drafting')
-    st.write('Use AI technology to draft a contract')
+    st.write('<p style="font-size:20px;">Use AI technology to draft a contract.</p>', unsafe_allow_html=True)
+
     # Form for contract input
     with st.form(key='contract_form'):
         st.session_state['contract_type'] = st.selectbox(
@@ -148,13 +150,15 @@ if st.session_state.operation == 'contract_drafting':
         st.session_state['contract_terms'] = st.text_area('Enter the key terms and conditions', value=st.session_state['contract_terms'])
 
         btn = st.form_submit_button('Draft')
-        if btn:
-            response = draft_contract(ibm_url, ibm_project_id, st.session_state['contract_type'], st.session_state['country'], st.session_state['party_one'], st.session_state['party_two'], st.session_state['contract_terms'])
+        if btn: 
+            with st.spinner('Drafting contract...'):
+                response = draft_contract(ibm_url, ibm_project_id, st.session_state['contract_type'], st.session_state['country'], st.session_state['party_one'], st.session_state['party_two'], st.session_state['contract_terms'])
 
-            st.session_state['generated_contract'] = response  # Store response in session state
+                st.session_state['generated_contract'] = response  # Store response in session state
 
     # Display the generated contract and download button outside the form
     if st.session_state['generated_contract']:
+        st.header('Generated Contract')
         st.write(st.session_state['generated_contract'])
         pdf_file = save_to_pdf(st.session_state['generated_contract'])
         st.download_button(label="Download Contract", data=pdf_file, file_name="draft.pdf", mime="application/pdf")
@@ -164,6 +168,10 @@ if st.session_state.operation == 'contract_drafting':
 
 
 elif st.session_state.operation == 'suggest_clauses':
+
+    st.header('Contract Clause Suggestion')
+    st.write('<p style="font-size:20px; text_color:"green">Use AI technology suggest additional clauses for an uploaded contract.</p>', unsafe_allow_html=True)
+
     if 'contract_text' not in st.session_state:
         st.session_state['contract_text'] = ''
 
@@ -173,7 +181,7 @@ elif st.session_state.operation == 'suggest_clauses':
     if 'max_tokens' not in st.session_state:
         st.session_state['max_tokens'] = 100
 
-    st.write('<p style="font-size:16px;">Adjust the maximum tokens. Larger max token value will result in a detailed report.</p>', unsafe_allow_html=True)
+    st.write('<p style="font-size:16px; margin-top:20px">Adjust the maximum tokens. Larger max token value will result in a detailed report.</p>', unsafe_allow_html=True)
 
     max_tokens = st.slider('Max Tokens', 100, 1000 )
 
@@ -181,13 +189,15 @@ elif st.session_state.operation == 'suggest_clauses':
     btn = st.button('Suggest Clauses')
 
     if btn and contract_file and max_tokens:
+        with st.spinner('Suggesting clauses...'):
+            contract_text = extract_text_from_pdf(contract_file)
 
-        contract_text = extract_text_from_pdf(contract_file)
+            st.session_state['contract_text'] = contract_text
 
-        st.session_state['contract_text'] = contract_text
+            response = suggest_clauses(ibm_url, ibm_project_id, int(max_tokens), st.session_state['contract_text'])
+            st.session_state['suggested_clauses'] = response  # Store response in session state
 
-        response = suggest_clauses(ibm_url, ibm_project_id, int(max_tokens), st.session_state['contract_text'])
-        st.session_state['suggested_clauses'] = response  # Store response in session state
+        st.header("Suggested Clauses")
         st.write(st.session_state['suggested_clauses'])
 
 
@@ -198,28 +208,35 @@ elif st.session_state.operation == 'monitor_compliance':
     if 'contract_text' not in st.session_state:
         st.session_state['contract_text'] = ''
 
+    if 'conditions' not in st.session_state:
+        st.session_state['conditions'] = ''
+
     if 'compliance_summary' not in st.session_state:
         st.session_state['compliance_summary'] = ''
 
+    st.header('Contract Compliance Monitoring')
+    st.write('<p style="font-size:20px;">Use AI technology access compliance with terms and conditions.</p>', unsafe_allow_html=True)
 
-    st.write('<p style="font-size:16px;">Adjust the maximum tokens. Larger max token value will result in a detailed report.</p>', unsafe_allow_html=True)
-
+    st.write('<p style="font-size:16px; margin-top:20px">Adjust the maximum tokens. Larger max token value will result in a detailed report.</p>', unsafe_allow_html=True)
     max_tokens = st.slider('Max Tokens', 100, 1000 )
 
     contract_file = st.file_uploader('Upload a contract file', type=['pdf'])
+    st.session_state['conditions'] = st.text_area('Enter the terms and conditions to check compliance')
     btn = st.button('Check Compliance')
 
-    if contract_file and btn and max_tokens:
-        text_extracted = extract_text_from_pdf(contract_file)
-        st.session_state['contract_text'] = text_extracted
+    if contract_file  and btn and max_tokens:
+        with st.spinner('Checking compliance...'):
+            text_extracted = extract_text_from_pdf(contract_file)
+            st.session_state['contract_text'] = text_extracted
 
-        response = monitor_compliance(ibm_url, ibm_project_id, int(max_tokens), st.session_state['contract_text'])
-        st.session_state['compliance_summary'] = response  # Store response in session state
+            response = monitor_compliance(ibm_url, ibm_project_id, int(max_tokens), st.session_state['contract_text'], st.session_state['conditions'])
+
+            st.session_state['compliance_summary'] = response  # Store response in session state
+        st.header("Generated Summary")
         st.write(st.session_state['compliance_summary'])
 
 
 # Contract Review
-
 
 elif st.session_state.operation == 'review_contract':
     if 'contract_text' not in st.session_state:
@@ -228,25 +245,32 @@ elif st.session_state.operation == 'review_contract':
     if 'review_summary' not in st.session_state:
         st.session_state['review_summary'] = ''
 
-    st.write('<p style="font-size:16px;">Adjust the maximum tokens. Larger max token value will result in a detailed report.</p>', unsafe_allow_html=True)
+    st.header('Contract Review')
+    st.write('<p style="font-size:20px;">Upload a contract file and our AI system will review and generate a detailed summary.</p>', unsafe_allow_html=True)
 
+    st.write('<p style="font-size:16px; margin-top:20px">Adjust the maximum tokens. Larger max token value will result in a detailed report.</p>', unsafe_allow_html=True)
     max_tokens = st.slider('Max Tokens', 100, 1000 )
 
     contract_file = st.file_uploader('Upload a contract file', type=['pdf'])
     btn = st.button('Review Contract')
 
     if contract_file and btn and max_tokens:
+        with st.spinner('Reviewing contract...'):
+            text_extracted = extract_text_from_pdf(contract_file)
+            st.session_state['contract_text'] = text_extracted
 
-        text_extracted = extract_text_from_pdf(contract_file)
-        st.session_state['contract_text'] = text_extracted
-
-        response = review_contract(ibm_url, ibm_project_id, int(max_tokens), st.session_state['contract_text'])
-        st.session_state['review_summary'] = response
+            response = review_contract(ibm_url, ibm_project_id, int(max_tokens), st.session_state['contract_text'])
+            st.session_state['review_summary'] = response
+        st.header('Generated Summary')
         st.write(st.session_state['review_summary'])
 
 
 # Smart Contract
 elif st.session_state.operation == 'smart_contract':
+
+    st.header('Upload to Blockchain')
+    st.write('<p style="font-size:20px;">Secure your contracts by uploading it to blockchain.</p>', unsafe_allow_html=True)
+
     contract_file = st.file_uploader('Upload a contract file', type=['pdf'])
     bt = st.button('Upload')
 
@@ -278,6 +302,10 @@ elif st.session_state.operation == 'smart_contract':
 
 
 elif st.session_state.operation == 'compare_documents':
+
+    st.header('Document Comparison')
+    st.write('<p style="font-size:20px;">Upload different contracts and compare them smartly.</p>', unsafe_allow_html=True)
+
     if 'original_contract' not in st.session_state:
         st.session_state['original_contract'] = ''
 
@@ -287,7 +315,7 @@ elif st.session_state.operation == 'compare_documents':
     if 'comparison_summary' not in st.session_state:
         st.session_state['comparison_summary'] = ''
 
-    st.write('<p style="font-size:16px;">Adjust the maximum tokens. Larger max token value will result in a detailed report.</p>', unsafe_allow_html=True)
+    st.write('<p style="font-size:16px; margin-top:20px">Adjust the maximum tokens. Larger max token value will result in a detailed report.</p>', unsafe_allow_html=True)
 
     max_tokens = st.slider('Max Tokens', 100, 1000 )
 
@@ -296,16 +324,17 @@ elif st.session_state.operation == 'compare_documents':
     btn = st.button('Compare Documents')
 
     if contract_file_first and contract_file_second and btn and max_tokens:
+        with st.spinner('Comparing Contracts...'):
+            original_contract = extract_text_from_pdf(contract_file_first)
+            st.session_state['original_contract'] = original_contract
 
-        original_contract = extract_text_from_pdf(contract_file_first)
-        st.session_state['original_contract'] = original_contract
+            new_contract = extract_text_from_pdf(contract_file_second)
+            st.session_state['new_contract'] = new_contract
 
-        new_contract = extract_text_from_pdf(contract_file_first)
-        st.session_state['new_contract'] = new_contract
+            response = compare_documents(ibm_url, ibm_project_id, int(max_tokens), st.session_state['original_contract'], st.session_state['new_contract'])
 
-        response = compare_documents(ibm_url, ibm_project_id, int(max_tokens), st.session_state['original_contract'], st.session_state['new_contract'])
-
-        st.session_state['comparison_summary'] = response  # Store response in session state
+            st.session_state['comparison_summary'] = response  # Store response in session state
+        st.header('Comparison Summary')
         st.write(st.session_state['comparison_summary'])
 
 
@@ -319,8 +348,10 @@ elif st.session_state.operation == 'categorize_document':
     if 'document_type' not in st.session_state:
         st.session_state['document_type'] = ''
 
-    st.write('<p style="font-size:16px;">Adjust the maximum tokens. Larger max token value will result in a detailed report.</p>', unsafe_allow_html=True)
+    st.header('Legal Document Categorization')
+    st.write('<p style="font-size:20px;">Categorize your legal documents smartly.</p>', unsafe_allow_html=True)
 
+    st.write('<p style="font-size:16px; margin-top:20px">Adjust the maximum tokens. Larger max token value will result in a detailed report.</p>', unsafe_allow_html=True)
     max_tokens = st.slider('Max Tokens', 100, 1000 )
 
     contract_file = st.file_uploader('Upload a contract file', type=['pdf'])
@@ -329,11 +360,13 @@ elif st.session_state.operation == 'categorize_document':
 
     # Form for legal document categorization input
     if contract_file and btn:
-        text_extracted = extract_text_from_pdf(contract_file)
-        st.session_state['document_text'] = text_extracted
+        with st.spinner('Categorizing Contract...'):
+            text_extracted = extract_text_from_pdf(contract_file)
+            st.session_state['document_text'] = text_extracted
 
-        response = categorize_document(ibm_url, ibm_project_id, int(max_tokens), st.session_state['document_text'])
-        st.session_state['document_type'] = response  # Store response in session state
+            response = categorize_document(ibm_url, ibm_project_id, int(max_tokens), st.session_state['document_text'])
+            st.session_state['document_type'] = response  # Store response in session state
+        st.header('Document Type')
         st.write(st.session_state['document_type'])
 
 
@@ -341,6 +374,10 @@ elif st.session_state.operation == 'categorize_document':
 
 
 elif st.session_state.operation == 'verify_contract':
+
+    st.header('Verify Contract')
+    st.write('<p style="font-size:20px;">Verify that your contract is uploaded to blockchain.</p>', unsafe_allow_html=True)
+
     uploaded_contract = st.file_uploader('Upload the contract file', type=['pdf'])
     contract_address = st.text_input("Enter the contract address to verify")
 

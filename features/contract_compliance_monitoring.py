@@ -1,6 +1,6 @@
 from langchain_ibm import WatsonxLLM 
 
-def monitor_compliance(url, project_id, max_tokens, contract_text):
+def monitor_compliance(url, project_id, max_tokens, contract_text, conditions):
 
     """
     Summarizes and evaluates compliance with the terms of a specified contract using IBM's WatsonxLLM.
@@ -12,6 +12,7 @@ def monitor_compliance(url, project_id, max_tokens, contract_text):
         project_id (str): The project identifier for the WatsonxLLM instance.
         max_tokens (int): The maximum number of tokens to generate in the compliance summary.
         contract_text (str): The full text of the contract to be analyzed for compliance.
+        conditions (str): Specific terms and conditions to check for compliance within the contract.
 
     Returns:
         str: A detailed summary that includes:
@@ -42,22 +43,25 @@ def monitor_compliance(url, project_id, max_tokens, contract_text):
     # Template for instructing the model to generate suggestions.
 
     compliance_template = f"""
-    As a legal analyst, your task is to review and assess the compliance of the following contract with its specified terms and conditions:
+    As a legal analyst, your task is to review and assess the compliance of the following contract with the specified conditions:
 
     Contract Text:
     {contract_text}
 
+    Conditions to Terms and Conditions:
+    {conditions}
+
     Instructions:
-    1. Identify and summarize each key term and obligation outlined in the contract.
+    1. Identify and summarize each key term and obligation outlined in the contract related to the specified conditions.
     2. Evaluate the compliance status of each term:
     - Fully Compliant
     - Partially Compliant (Specify areas of concern)
     - Non-Compliant (Highlight breaches or deviations)
     3. Provide a comprehensive summary that includes:
-    - An overview of fully compliant areas.
+    - An overview of fully compliant areas related to the specified conditions.
     - Details of any partial compliance, with recommendations for rectification.
     - A clear identification of any non-compliance, specifying the clauses breached and potential legal implications.
-    4. Conclude with any additional observations or recommendations for ensuring full compliance.
+    4. Conclude with any additional observations or recommendations for ensuring full compliance with the specified conditions.
 
     Deliver your analysis in a clear, structured format suitable for legal review.
     """
