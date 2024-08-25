@@ -1,0 +1,12 @@
+from PyPDF2 import PdfReader
+from io import BytesIO
+
+def extract_text_from_pdf(file, markdown=False):
+    if markdown:
+    else:    
+        pdf_reader = PdfReader(BytesIO(file.read()))
+        text = ""
+        for page_num in range(len(pdf_reader.pages)):
+            page = pdf_reader.pages[page_num]
+            text += page.extract_text() or ""
+        return text

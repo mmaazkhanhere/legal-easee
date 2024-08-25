@@ -99,6 +99,8 @@ with st.sidebar:
     if st.button('Verify Contract'):
         st.session_state.operation = 'verify_contract'
 
+# Contract Drafting Feature
+
 if st.session_state.operation == 'contract_drafting':
     if 'contract_type' not in st.session_state:
         st.session_state['contract_type'] = 'NDA'
@@ -165,6 +167,10 @@ if st.session_state.operation == 'contract_drafting':
 
         pdf_file = save_to_pdf(st.session_state['generated_contract'])
         st.download_button(label="Download Contract", data=pdf_file, file_name=f"{tx_receipt.contractAddress}.pdf", mime="application/pdf")
+
+
+# Suggest Clause Feature
+
 elif st.session_state.operation == 'suggest_clauses':
     if 'contract_text' not in st.session_state:
         st.session_state['contract_text'] = ''
