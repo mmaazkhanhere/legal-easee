@@ -1,3 +1,6 @@
-pycryptodome web3
+pycryptodome 
+web3
 py-solc-x
 markdown
+ibm-langchain
+python_dotenv

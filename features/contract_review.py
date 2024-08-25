@@ -2,6 +2,23 @@ from langchain_ibm import WatsonxLLM
 
 def review_contract(url, project_id, max_tokens, contract_text):
 
+    """
+    Reviews the provided contract text to identify key clauses and potential legal issues using IBM's WatsonxLLM.
+
+    This function utilizes the WatsonxLLM model to analyze the text of a contract, identifying key clauses and any potential legal issues. The function provides a comprehensive summary that highlights the critical components of the contract, identifies any ambiguities or risks, and offers recommendations for improvements.
+
+    Parameters:
+        url (str): The API endpoint URL to access the WatsonxLLM service.
+        project_id (str): The project identifier for the WatsonxLLM instance.
+        max_tokens (int): The maximum number of tokens to generate in the review summary.
+        contract_text (str): The full text of the contract to be reviewed.
+
+    Returns:
+        str: A detailed summary of the contract
+
+    """
+
+    # Define the parameters for generating suggestions
     parameters = {
     "decoding_method": "sample",
     "max_new_tokens": max_tokens,
@@ -10,6 +27,7 @@ def review_contract(url, project_id, max_tokens, contract_text):
     "top_p": 0.9,
     }
 
+    # Initialize the WatsonLLM model with the specified parameters and project details
     watsonx_llm = WatsonxLLM(
             model_id="ibm/granite-13b-chat-v2",
             url=url,
@@ -17,17 +35,8 @@ def review_contract(url, project_id, max_tokens, contract_text):
             params=parameters,
     )
 
-    """
-    Reviews the uploaded contract text to identify key clauses and potential issues.
 
-    Parameters:
-        contract_text (str): The full text of the contract to review.
-        watsonx_llm (WatsonxLLM): The initialized WatsonxLLM instance.
-
-    Returns:
-        str: A comprehensive summary highlighting the key clauses and identifying any potential legal issues within the contract.
-    """
-
+    # Template for the model that define persona for the model and specify instructions
     review_template = f"""
     You are a legal expert tasked with reviewing the following contract to identify its key clauses and any potential legal issues:
 
