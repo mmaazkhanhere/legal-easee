@@ -3,6 +3,8 @@ from io import BytesIO
 
 def extract_text_from_pdf(file, markdown=False):
     if markdown:
+        # implement markdown functionality
+        print('Markdown')
     else:    
         pdf_reader = PdfReader(BytesIO(file.read()))
         text = ""
