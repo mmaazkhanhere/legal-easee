@@ -1,2 +1,3 @@
 pycryptodome web3
 py-solc-x
+markdown
