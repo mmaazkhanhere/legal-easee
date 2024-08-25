@@ -6,6 +6,8 @@ from web3 import Web3
 from solcx import compile_source
 from langchain_ibm import WatsonxLLM 
 
+from helper_functions.pdf_text_extractor import extract_text_from_pdf
+
 from features.draft_generation import draft_contract
 from helper_functions.pdf_conversion import save_to_pdf
 from features.contract_clause_suggestion import suggest_clauses
@@ -176,6 +178,7 @@ if st.session_state.operation == 'contract_drafting':
 
 # Suggest Clause Feature
 
+
 elif st.session_state.operation == 'suggest_clauses':
     if 'contract_text' not in st.session_state:
         st.session_state['contract_text'] = ''
@@ -184,27 +187,31 @@ elif st.session_state.operation == 'suggest_clauses':
         st.session_state['suggested_clauses'] = ''
 
     # Form for contract clause suggestion input
-    with st.form(key='clause_suggestion_form'):
-        st.session_state['contract_text'] = st.text_area('Enter the contract text for clause suggestions', value=st.session_state['contract_text'])
+    contract_file = st.file_uploader('Upload a contract file', type=['pdf'])
 
-        btn = st.form_submit_button('Suggest Clauses')
-        if btn:
-            # Initialize WatsonxLLM instance
-            watsonx_llm = WatsonxLLM(
-                model_id="ibm/granite-13b-chat-v2",
-                url=ibm_url,
-                project_id=ibm_project_id,
-                params=parameters,
-            )
+    btn = st.button('Suggest Clauses')
+    if btn and contract_file:
 
-            response = suggest_clauses(st.session_state['contract_text'], watsonx_llm)
-            st.session_state['suggested_clauses'] = response  # Store response in session state
+        contract_text = extract_text_from_pdf(contract_file)
 
-    # Display the suggested clauses
-    if st.session_state['suggested_clauses']:
+        st.session_state['contract_text'] = contract_text
+
+        # Initialize WatsonxLLM instance
+        watsonx_llm = WatsonxLLM(
+            model_id="ibm/granite-13b-chat-v2",
+            url=ibm_url,
+            project_id=ibm_project_id,
+            params=parameters,
+        )
+
+        response = suggest_clauses(st.session_state['contract_text'], watsonx_llm)
+        st.session_state['suggested_clauses'] = response  # Store response in session state
         st.write(st.session_state['suggested_clauses'])
 
+
 # Contract Compliance Monitoring
+
+
 elif st.session_state.operation == 'monitor_compliance':
     if 'contract_text' not in st.session_state:
         st.session_state['contract_text'] = ''
@@ -212,28 +219,29 @@ elif st.session_state.operation == 'monitor_compliance':
     if 'compliance_summary' not in st.session_state:
         st.session_state['compliance_summary'] = ''
 
-    # Form for contract compliance monitoring input
-    with st.form(key='compliance_monitoring_form'):
-        st.session_state['contract_text'] = st.text_area('Enter the contract text for compliance monitoring', value=st.session_state['contract_text'])
+    contract_file = st.file_uploader('Upload a contract file', type=['pdf'])
+    btn = st.button('Check Compliance')
 
-        btn = st.form_submit_button('Check Compliance')
-        if btn:
-            # Initialize WatsonxLLM instance
-            watsonx_llm = WatsonxLLM(
-                model_id="ibm/granite-13b-chat-v2",
-                url=ibm_url,
-                project_id=ibm_project_id,
-                params=parameters,
-            )
+    if contract_file and btn:
+        text_extracted = extract_text_from_pdf(contract_file)
+        st.session_state['contract_text'] = text_extracted
 
-            response = monitor_compliance(st.session_state['contract_text'], watsonx_llm)
-            st.session_state['compliance_summary'] = response  # Store response in session state
+        # Initialize WatsonxLLM instance
+        watsonx_llm = WatsonxLLM(
+            model_id="ibm/granite-13b-chat-v2",
+            url=ibm_url,
+            project_id=ibm_project_id,
+            params=parameters,
+        )
 
-    # Display the compliance summary
-    if st.session_state['compliance_summary']:
+        response = monitor_compliance(st.session_state['contract_text'], watsonx_llm)
+        st.session_state['compliance_summary'] = response  # Store response in session state
         st.write(st.session_state['compliance_summary'])
 
+
 # Contract Review
+
+
 elif st.session_state.operation == 'review_contract':
     if 'contract_text' not in st.session_state:
         st.session_state['contract_text'] = ''
@@ -241,28 +249,29 @@ elif st.session_state.operation == 'review_contract':
     if 'review_summary' not in st.session_state:
         st.session_state['review_summary'] = ''
 
-    # Form for contract review input
-    with st.form(key='review_contract_form'):
-        st.session_state['contract_text'] = st.text_area('Enter the contract text for review', value=st.session_state['contract_text'])
+    contract_file = st.file_uploader('Upload a contract file', type=['pdf'])
+    btn = st.button('Review Contract')
 
-        btn = st.form_submit_button('Review Contract')
-        if btn:
-            # Initialize WatsonxLLM instance
-            watsonx_llm = WatsonxLLM(
-                model_id="ibm/granite-13b-chat-v2",
-                url=ibm_url,
-                project_id=ibm_project_id,
-                params=parameters,
-            )
+    if contract_file and btn:
 
-            response = review_contract(st.session_state['contract_text'], watsonx_llm)
-            st.session_state['review_summary'] = response  # Store response in session state
+        text_extracted = extract_text_from_pdf(contract_file)
+        st.session_state['contract_text'] = text_extracted
 
-    # Display the review summary
-    if st.session_state['review_summary']:
+        watsonx_llm = WatsonxLLM(
+            model_id="ibm/granite-13b-chat-v2",
+            url=ibm_url,
+            project_id=ibm_project_id,
+            params=parameters,
+        )
+
+        response = review_contract(st.session_state['contract_text'], watsonx_llm)
+        st.session_state['review_summary'] = response  # Store response in session state
         st.write(st.session_state['review_summary'])
 
+
 # Document Comparison
+
+
 elif st.session_state.operation == 'compare_documents':
     if 'original_contract' not in st.session_state:
         st.session_state['original_contract'] = ''
@@ -273,29 +282,34 @@ elif st.session_state.operation == 'compare_documents':
     if 'comparison_summary' not in st.session_state:
         st.session_state['comparison_summary'] = ''
 
-    # Form for document comparison input
-    with st.form(key='document_comparison_form'):
-        st.session_state['original_contract'] = st.text_area('Enter the original contract text', value=st.session_state['original_contract'])
-        st.session_state['new_contract'] = st.text_area('Enter the updated contract text', value=st.session_state['new_contract'])
+    contract_file_first = st.file_uploader('Upload a contract file', type=['pdf'])
+    contract_file_second = st.file_uploader('Upload another contract file to compare with', type=['pdf'])
+    btn = st.button('Compare Documents')
 
-        btn = st.form_submit_button('Compare Documents')
-        if btn:
-            # Initialize WatsonxLLM instance
-            watsonx_llm = WatsonxLLM(
-                model_id="ibm/granite-13b-chat-v2",
-                url=ibm_url,
-                project_id=ibm_project_id,
-                params=parameters,
-            )
+    if contract_file_first and contract_file_second and btn:
 
-            response = compare_documents(st.session_state['original_contract'], st.session_state['new_contract'], watsonx_llm)
-            st.session_state['comparison_summary'] = response  # Store response in session state
+        original_contract = extract_text_from_pdf(contract_file_first)
+        st.session_state['original_contract'] = original_contract
 
-    # Display the comparison summary
-    if st.session_state['comparison_summary']:
+        new_contract = extract_text_from_pdf(contract_file_first)
+        st.session_state['new_contract'] = new_contract
+
+        # Initialize WatsonxLLM instance
+        watsonx_llm = WatsonxLLM(
+            model_id="ibm/granite-13b-chat-v2",
+            url=ibm_url,
+            project_id=ibm_project_id,
+            params=parameters,
+        )
+
+        response = compare_documents(st.session_state['original_contract'], st.session_state['new_contract'], watsonx_llm)
+        st.session_state['comparison_summary'] = response  # Store response in session state
         st.write(st.session_state['comparison_summary'])
 
+
 # Legal Document Categorization
+
+
 elif st.session_state.operation == 'categorize_document':
     if 'document_text' not in st.session_state:
         st.session_state['document_text'] = ''
@@ -303,26 +317,27 @@ elif st.session_state.operation == 'categorize_document':
     if 'document_type' not in st.session_state:
         st.session_state['document_type'] = ''
 
+    contract_file = st.file_uploader('Upload a contract file', type=['pdf'])
+    btn = st.button('Categorize Document')
+
     # Form for legal document categorization input
-    with st.form(key='document_categorization_form'):
-        st.session_state['document_text'] = st.text_area('Enter the document text to categorize', value=st.session_state['document_text'])
+    if contract_file and btn:
+        text_extracted = extract_text_from_pdf(contract_file)
+        st.session_state['document_text'] = text_extracted
 
-        btn = st.form_submit_button('Categorize Document')
-        if btn:
-            # Initialize WatsonxLLM instance
-            watsonx_llm = WatsonxLLM(
-                model_id="ibm/granite-13b-chat-v2",
-                url=ibm_url,
-                project_id=ibm_project_id,
-                params=parameters,
-            )
+        # Initialize WatsonxLLM instance
+        watsonx_llm = WatsonxLLM(
+            model_id="ibm/granite-13b-chat-v2",
+            url=ibm_url,
+            project_id=ibm_project_id,
+            params=parameters,
+        )
 
-            response = categorize_document(st.session_state['document_text'], watsonx_llm)
-            st.session_state['document_type'] = response  # Store response in session state
-
-    # Display the document type
-    if st.session_state['document_type']:
+        response = categorize_document(st.session_state['document_text'], watsonx_llm)
+        st.session_state['document_type'] = response  # Store response in session state
         st.write(st.session_state['document_type'])
+
+
 elif st.session_state.operation == 'verify_contract':
     contract_address = st.text_input("Enter the contract address to verify")
 
