@@ -1,5 +1,22 @@
+from langchain_ibm import WatsonxLLM 
 
-def categorize_document(document_text, watsonx_llm):
+def categorize_document(url, project_id, max_tokens, document_text):
+
+    parameters = {
+    "decoding_method": "sample",
+    "max_new_tokens": max_tokens,
+    "temperature": 0.7,
+    "top_k": 50,
+    "top_p": 0.9,
+    }
+
+    watsonx_llm = WatsonxLLM(
+            model_id="ibm/granite-13b-chat-v2",
+            url=url,
+            project_id=project_id,
+            params=parameters,
+    )
+    
     """
     Classifies a legal document by its type and provides a brief explanation for the categorization.
 

@@ -186,25 +186,23 @@ elif st.session_state.operation == 'suggest_clauses':
     if 'suggested_clauses' not in st.session_state:
         st.session_state['suggested_clauses'] = ''
 
-    # Form for contract clause suggestion input
-    contract_file = st.file_uploader('Upload a contract file', type=['pdf'])
+    if 'max_tokens' not in st.session_state:
+        st.session_state['max_tokens'] = 100
 
+    st.write('<p style="font-size:16px;">Adjust the maximum tokens. Larger max token value will result in a detailed report.</p>', unsafe_allow_html=True)
+
+    max_tokens = st.slider('Max Tokens', 100, 1000 )
+
+    contract_file = st.file_uploader('Upload a contract file', type=['pdf'])
     btn = st.button('Suggest Clauses')
-    if btn and contract_file:
+
+    if btn and contract_file and max_tokens:
 
         contract_text = extract_text_from_pdf(contract_file)
 
         st.session_state['contract_text'] = contract_text
 
-        # Initialize WatsonxLLM instance
-        watsonx_llm = WatsonxLLM(
-            model_id="ibm/granite-13b-chat-v2",
-            url=ibm_url,
-            project_id=ibm_project_id,
-            params=parameters,
-        )
-
-        response = suggest_clauses(st.session_state['contract_text'], watsonx_llm)
+        response = suggest_clauses(ibm_url, ibm_project_id, int(max_tokens), st.session_state['contract_text'])
         st.session_state['suggested_clauses'] = response  # Store response in session state
         st.write(st.session_state['suggested_clauses'])
 
@@ -219,22 +217,19 @@ elif st.session_state.operation == 'monitor_compliance':
     if 'compliance_summary' not in st.session_state:
         st.session_state['compliance_summary'] = ''
 
+
+    st.write('<p style="font-size:16px;">Adjust the maximum tokens. Larger max token value will result in a detailed report.</p>', unsafe_allow_html=True)
+
+    max_tokens = st.slider('Max Tokens', 100, 1000 )
+
     contract_file = st.file_uploader('Upload a contract file', type=['pdf'])
     btn = st.button('Check Compliance')
 
-    if contract_file and btn:
+    if contract_file and btn and max_tokens:
         text_extracted = extract_text_from_pdf(contract_file)
         st.session_state['contract_text'] = text_extracted
 
-        # Initialize WatsonxLLM instance
-        watsonx_llm = WatsonxLLM(
-            model_id="ibm/granite-13b-chat-v2",
-            url=ibm_url,
-            project_id=ibm_project_id,
-            params=parameters,
-        )
-
-        response = monitor_compliance(st.session_state['contract_text'], watsonx_llm)
+        response = monitor_compliance(ibm_url, ibm_project_id, int(max_tokens), st.session_state['contract_text'])
         st.session_state['compliance_summary'] = response  # Store response in session state
         st.write(st.session_state['compliance_summary'])
 
@@ -249,23 +244,20 @@ elif st.session_state.operation == 'review_contract':
     if 'review_summary' not in st.session_state:
         st.session_state['review_summary'] = ''
 
+    st.write('<p style="font-size:16px;">Adjust the maximum tokens. Larger max token value will result in a detailed report.</p>', unsafe_allow_html=True)
+
+    max_tokens = st.slider('Max Tokens', 100, 1000 )
+
     contract_file = st.file_uploader('Upload a contract file', type=['pdf'])
     btn = st.button('Review Contract')
 
-    if contract_file and btn:
+    if contract_file and btn and max_tokens:
 
         text_extracted = extract_text_from_pdf(contract_file)
         st.session_state['contract_text'] = text_extracted
 
-        watsonx_llm = WatsonxLLM(
-            model_id="ibm/granite-13b-chat-v2",
-            url=ibm_url,
-            project_id=ibm_project_id,
-            params=parameters,
-        )
-
-        response = review_contract(st.session_state['contract_text'], watsonx_llm)
-        st.session_state['review_summary'] = response  # Store response in session state
+        response = review_contract(ibm_url, ibm_project_id, int(max_tokens), st.session_state['contract_text'])
+        st.session_state['review_summary'] = response
         st.write(st.session_state['review_summary'])
 
 
@@ -282,11 +274,15 @@ elif st.session_state.operation == 'compare_documents':
     if 'comparison_summary' not in st.session_state:
         st.session_state['comparison_summary'] = ''
 
+    st.write('<p style="font-size:16px;">Adjust the maximum tokens. Larger max token value will result in a detailed report.</p>', unsafe_allow_html=True)
+
+    max_tokens = st.slider('Max Tokens', 100, 1000 )
+
     contract_file_first = st.file_uploader('Upload a contract file', type=['pdf'])
     contract_file_second = st.file_uploader('Upload another contract file to compare with', type=['pdf'])
     btn = st.button('Compare Documents')
 
-    if contract_file_first and contract_file_second and btn:
+    if contract_file_first and contract_file_second and btn and max_tokens:
 
         original_contract = extract_text_from_pdf(contract_file_first)
         st.session_state['original_contract'] = original_contract
@@ -294,15 +290,8 @@ elif st.session_state.operation == 'compare_documents':
         new_contract = extract_text_from_pdf(contract_file_first)
         st.session_state['new_contract'] = new_contract
 
-        # Initialize WatsonxLLM instance
-        watsonx_llm = WatsonxLLM(
-            model_id="ibm/granite-13b-chat-v2",
-            url=ibm_url,
-            project_id=ibm_project_id,
-            params=parameters,
-        )
+        response = compare_documents(ibm_url, ibm_project_id, int(max_tokens), st.session_state['original_contract'], st.session_state['new_contract'])
 
-        response = compare_documents(st.session_state['original_contract'], st.session_state['new_contract'], watsonx_llm)
         st.session_state['comparison_summary'] = response  # Store response in session state
         st.write(st.session_state['comparison_summary'])
 
@@ -317,25 +306,25 @@ elif st.session_state.operation == 'categorize_document':
     if 'document_type' not in st.session_state:
         st.session_state['document_type'] = ''
 
+    st.write('<p style="font-size:16px;">Adjust the maximum tokens. Larger max token value will result in a detailed report.</p>', unsafe_allow_html=True)
+
+    max_tokens = st.slider('Max Tokens', 100, 1000 )
+
     contract_file = st.file_uploader('Upload a contract file', type=['pdf'])
-    btn = st.button('Categorize Document')
+    btn = st.button('Check Compliance')
+
 
     # Form for legal document categorization input
     if contract_file and btn:
         text_extracted = extract_text_from_pdf(contract_file)
         st.session_state['document_text'] = text_extracted
 
-        # Initialize WatsonxLLM instance
-        watsonx_llm = WatsonxLLM(
-            model_id="ibm/granite-13b-chat-v2",
-            url=ibm_url,
-            project_id=ibm_project_id,
-            params=parameters,
-        )
-
-        response = categorize_document(st.session_state['document_text'], watsonx_llm)
+        response = categorize_document(ibm_url, ibm_project_id, int(max_tokens), st.session_state['document_text'])
         st.session_state['document_type'] = response  # Store response in session state
         st.write(st.session_state['document_type'])
+
+
+# Verify Contract
 
 
 elif st.session_state.operation == 'verify_contract':
