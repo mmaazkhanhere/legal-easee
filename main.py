@@ -266,7 +266,7 @@ elif st.session_state.operation == 'smart_contract':
             'from': account_address})
         print(f"Estimated Gas: {gas_estimate}")
         transaction = Contract.constructor(contract_textd).build_transaction({
-        'from':account_address,  # Mainnet; change to 3 for Ropsten or 4 for Rinkeby
+        'from':account_address,  
                 'gas': gas_estimate + 100000,
                 'gasPrice': w3.to_wei('50', 'gwei'),
                 'nonce': nonce,
@@ -276,8 +276,6 @@ elif st.session_state.operation == 'smart_contract':
         tx_hash = w3.eth.send_raw_transaction(signed_txn.raw_transaction)
         tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
         st.success(f"Contract successfully deployed to Ethereum with transaction hash: {tx_hash.hex()} and contract address: {tx_receipt.contractAddress}.\n Keep your contract address safe for future use. ")
-            # verification_result = verify_contract(tx_receipt.contractAddress, st.session_state['contract_terms'])
-            # st.write(verification_result)
 
 
 
