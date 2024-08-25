@@ -1,6 +1,12 @@
+streamlit
 pycryptodome 
 web3
 py-solc-x
 markdown
-ibm-langchain
+langchain-ibm
 python_dotenv
+beautifulsoup4
+re
+markdown2
+reportlab
+PyPDF2

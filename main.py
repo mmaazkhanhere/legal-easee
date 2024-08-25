@@ -4,12 +4,12 @@ import os
 import streamlit as st
 from web3 import Web3
 from solcx import compile_source
-from langchain_ibm import WatsonxLLM 
+import difflib
 
 from helper_functions.pdf_text_extractor import extract_text_from_pdf
 from helper_functions.normalization import normalize_text
 from helper_functions.pdf_text_extractor import extract_text_from_pdf
-import difflib
+
 from features.draft_generation import draft_contract
 from helper_functions.pdf_conversion import save_to_pdf
 from features.contract_clause_suggestion import suggest_clauses
@@ -17,18 +17,9 @@ from features.contract_compliance_monitoring import monitor_compliance
 from features.contract_review import review_contract
 from features.document_comparison import compare_documents
 from features.legal_document_categorization import categorize_document
+
 # Load environment variables
 load_dotenv()
-
-# def verify_contract(contract_address, expected_terms):
-#     contract = w3.eth.contract(address=contract_address, abi=contract_interface['abi'])
-    
-#     # Use getContractContent instead of getContractTerms
-#     contract_content = contract.functions.getContractContent().call()
-#     if contract_content != expected_terms:
-#         return "Contract content does not match!"
-    
-#     return "Contract verification successful!"
 
 # Retrieve IBM API credentials from environment variables
 ibm_key = os.environ["WATSONX_APIKEY"]
@@ -70,14 +61,6 @@ contract ContractStorage {
 compiled_sol = compile_source(contract_source_code)
 contract_interface = compiled_sol['<stdin>:ContractStorage']
 
-# Set parameters for the AI model
-parameters = {
-    "decoding_method": "sample",
-    "max_new_tokens": 800,
-    "temperature": 0.7,
-    "top_k": 50,
-    "top_p": 0.9,
-}
 
 # Streamlit UI setup
 st.title('LegalChain')
