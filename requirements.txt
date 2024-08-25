@@ -9,3 +9,5 @@ beautifulsoup4
 markdown2
 reportlab
 PyPDF2
+numpy
+pandas
