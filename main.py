@@ -80,8 +80,9 @@ parameters = {
 }
 
 # Streamlit UI setup
-st.title('AI Contract Assistant')
-st.text('Generate a standard legal contract based on your input')
+st.title('LegalChain')
+st.write('<p style="font-size:22px;">Revolutize contract management with smart technology</p>', unsafe_allow_html=True)
+st.divider()
 
 if 'operation' not in st.session_state:
     st.session_state.operation = None
@@ -124,6 +125,8 @@ if st.session_state.operation == 'contract_drafting':
     if 'generated_contract' not in st.session_state:
         st.session_state['generated_contract'] = ''
 
+    st.header('Contract Drafting')
+    st.write('Use AI technology to draft a contract')
     # Form for contract input
     with st.form(key='contract_form'):
         st.session_state['contract_type'] = st.selectbox(
