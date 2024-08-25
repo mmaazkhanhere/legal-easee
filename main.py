@@ -16,6 +16,16 @@ from features.legal_document_categorization import categorize_document
 # Load environment variables
 load_dotenv()
 
+# def verify_contract(contract_address, expected_terms):
+#     contract = w3.eth.contract(address=contract_address, abi=contract_interface['abi'])
+    
+#     # Use getContractContent instead of getContractTerms
+#     contract_content = contract.functions.getContractContent().call()
+#     if contract_content != expected_terms:
+#         return "Contract content does not match!"
+    
+#     return "Contract verification successful!"
+
 # Retrieve IBM API credentials from environment variables
 ibm_key = os.environ["WATSONX_APIKEY"]
 ibm_project_id = os.environ.get('PROJECT_ID')
@@ -72,30 +82,29 @@ st.text('Generate a standard legal contract based on your input')
 if 'operation' not in st.session_state:
     st.session_state.operation = None
 
-sidebar = st.sidebar
-st.sidebar.header('Select your operation')
-
-if sidebar.button('Contract Drafting'):
-    st.session_state.operation = 'contract_drafting'
-elif sidebar.button('Contract Clause Suggestion'):
-    st.session_state.operation = 'suggest_clauses'
-elif sidebar.button('Contract Compliance Monitoring'):
-    st.session_state.operation = 'monitor_compliance'
-elif sidebar.button('Contract Review'):
-    st.session_state.operation = 'review_contract'
-elif sidebar.button('Document Comparison'):
-    st.session_state.operation = 'compare_documents'
-elif sidebar.button('Legal Document Categorization'):
-    st.session_state.operation = 'categorize_document'
-elif sidebar.button('Verify Contract'):
-    st.session_state.operation = 'verify_contract'
+with st.sidebar:
+    st.header('Select Operations')
+    if st.button('Contract Drafting'):
+        st.session_state.operation = 'contract_drafting'
+    if st.button('Contract Clause Suggestion'):
+        st.session_state.operation = 'suggest_clauses'
+    if st.button('Contract Compliance Monitoring'):
+        st.session_state.operation = 'monitor_compliance'
+    if st.button('Contract Review'):
+        st.session_state.operation = 'review_contract'
+    if st.button('Document Comparison'):
+        st.session_state.operation = 'compare_documents'
+    if st.button('Legal Document Categorization'):
+        st.session_state.operation = 'categorize_document'
+    if st.button('Verify Contract'):
+        st.session_state.operation = 'verify_contract'
 
 if st.session_state.operation == 'contract_drafting':
     if 'contract_type' not in st.session_state:
         st.session_state['contract_type'] = 'NDA'
 
     if 'country' not in st.session_state:
-        st.session_state['country'] = 'USA'
+        st.session_state['country'] = 'United States'
 
     if 'party_one' not in st.session_state:
         st.session_state['party_one'] = ''
@@ -129,7 +138,8 @@ if st.session_state.operation == 'contract_drafting':
 
         btn = st.form_submit_button('Draft')
         if btn:
-            response = draft_contract(ibm_url, ibm_project_id, parameters)
+            response = draft_contract(ibm_url, ibm_project_id, parameters, st.session_state['contract_type'], st.session_state['country'], st.session_state['party_one'], st.session_state['party_two'], st.session_state['contract_terms'])
+
             st.session_state['generated_contract'] = response  # Store response in session state
 
             # Deploy the contract with the generated content
@@ -146,6 +156,8 @@ if st.session_state.operation == 'contract_drafting':
             tx_hash = w3.eth.send_raw_transaction(signed_txn.raw_transaction)
             tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
             st.success(f"Contract successfully deployed to Ethereum with transaction hash: {tx_hash.hex()} and contract address: {tx_receipt.contractAddress}")
+            # verification_result = verify_contract(tx_receipt.contractAddress, st.session_state['contract_terms'])
+            # st.write(verification_result)
 
     # Display the generated contract and download button outside the form
     if st.session_state['generated_contract']:
