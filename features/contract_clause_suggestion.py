@@ -1,6 +1,21 @@
 from langchain_ibm import WatsonxLLM 
 
 def suggest_clauses(url, project_id, max_tokens, contract_text):
+    """
+    Suggests additional clauses for a given contract based on its context and identified needs using IBM's WatsonxLLM.
+
+
+    Parameters:
+        url (str): The API endpoint URL to access the WatsonxLLM service.
+        project_id (str): The project identifier for the WatsonxLLM instance.
+        max_tokens (int): The maximum number of tokens to generate in the suggested clauses.
+        contract_text (str): The current text of the contract for which additional clauses are needed.
+
+    Returns:
+        str: A list of suggested clauses, each accompanied by a brief explanation of its relevance and importance to the contract.
+    """
+
+    # Definig the parameters for generating suggestions using WatsonLLM
 
     parameters = {
         "decoding_method": "sample",
@@ -10,6 +25,8 @@ def suggest_clauses(url, project_id, max_tokens, contract_text):
         "top_p": 0.9,
     }
 
+    # Initialize the WatsonxLLM instance with the specified parameters
+
     watsonx_llm = WatsonxLLM(
             model_id="ibm/granite-13b-chat-v2",
             url=url,
@@ -17,17 +34,7 @@ def suggest_clauses(url, project_id, max_tokens, contract_text):
             params=parameters,
     )
 
-    """
-    Suggests additional clauses for the given contract based on its context and identified needs.
-
-    Parameters:
-        contract_text (str): The current text of the contract for which to suggest additional clauses.
-        watsonx_llm (WatsonxLLM): The initialized WatsonxLLM instance.
-
-    Returns:
-        str: A list of suggested clauses, each with a brief explanation of its relevance and importance.
-    """
-
+    # system message for the model to define its persona and what it is expected to do
     suggestion_template = f"""
     You are a legal expert tasked with reviewing the following contract to identify any gaps and suggest additional clauses that may be necessary or beneficial:
 

@@ -1,6 +1,24 @@
 from langchain_ibm import WatsonxLLM
 
-def draft_contract(url, project_id, parameters, contract_type, party_one, party_two, contract_terms, country):
+def draft_contract(url, project_id, contract_type, party_one, party_two, contract_terms, country):
+
+    """
+    Drafts a legal contract based on the specified type, parties involved, contract terms, and country-specific legal requirements using IBM's WatsonxLLM.
+
+    This function leverages the WatsonxLLM model to create a comprehensive contract tailored to the given details. The contract is drafted in accordance with the legal standards and practices of the specified country, ensuring that all necessary clauses and provisions are included.
+
+    Parameters:
+        url (str): The API endpoint URL to access the WatsonxLLM service.
+        project_id (str): The project identifier for the WatsonxLLM instance.
+        contract_type (str): The type of contract to be drafted (e.g., Employment Agreement, Lease Contract).
+        party_one (str): The name of the first party involved in the contract.
+        party_two (str): The name of the second party involved in the contract.
+        contract_terms (str): A description of the key terms and conditions to be included in the contract.
+        country (str): The country in which the contract will be executed, to ensure compliance with local laws and regulations.
+
+    Returns:
+        str: A fully drafted contract that includes all relevant clauses, structured in a clear and legally sound format, ready for review and execution by both parties.
+    """
 
     watsonx_llm = WatsonxLLM(
         model_id="ibm/granite-13b-chat-v2",
@@ -8,6 +26,15 @@ def draft_contract(url, project_id, parameters, contract_type, party_one, party_
         project_id=project_id,
         params=parameters,
     )
+    
+    parameters = {
+        "decoding_method": "sample",
+        "max_new_tokens": 800,
+        "temperature": 0.7,
+        "top_k": 50,
+        "top_p": 0.9,
+    }
+
 
     template = f"""
     

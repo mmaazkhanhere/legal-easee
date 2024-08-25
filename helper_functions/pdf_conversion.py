@@ -10,6 +10,16 @@ from reportlab.lib.enums import TA_LEFT
 from bs4 import BeautifulSoup
 
 def save_to_pdf(markdown_text):
+    """
+    Converts markdown text to a PDF document using ReportLab.
+
+    Parameters:
+        markdown_text (str): The input text in markdown format to be converted to a PDF.
+
+    Returns:
+        BytesIO: A file-like object containing the generated PDF, ready for saving or further processing.
+    """
+
     # Convert markdown to HTML
     html_text = markdown2.markdown(markdown_text)
     
