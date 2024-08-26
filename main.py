@@ -21,6 +21,11 @@ from features.legal_document_categorization import categorize_document
 # Load environment variables
 load_dotenv()
 
+st.set_page_config(
+    page_title="LegalEase",  
+    page_icon="📝", 
+)
+
 # Retrieve IBM API credentials from environment variables
 ibm_key = os.environ["WATSONX_APIKEY"]
 ibm_project_id = os.environ.get('PROJECT_ID')
